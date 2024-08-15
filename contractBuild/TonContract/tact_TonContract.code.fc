@@ -1,0 +1,143 @@
+#pragma version =0.4.4;
+#pragma allow-post-modification;
+#pragma compute-asm-ltr;
+
+#include "tact_TonContract.headers.fc";
+#include "tact_TonContract.stdlib.fc";
+#include "tact_TonContract.storage.fc";
+
+;;
+;; Contract TonContract functions
+;;
+
+(slice, int) $TonContract$_contract_init(int $id) impure inline_ref {
+    var (($self'owner, $self'id)) = (null(), null());
+    $self'id = $id;
+    $self'owner = __tact_context_get_sender();
+    return ($self'owner, $self'id);
+}
+
+((slice, int), ()) $TonContract$_fun_isOwner((slice, int) $self) impure inline_ref {
+    var (($self'owner, $self'id)) = $self;
+    throw_unless(23442, ( __tact_slice_eq_bits(__tact_context_get_sender(), $self'owner) ));
+    return (($self'owner, $self'id), ());
+}
+
+((slice, int), slice) $TonContract$_fun_balance((slice, int) $self) impure inline_ref {
+    var (($self'owner, $self'id)) = $self;
+    return (($self'owner, $self'id), $Int$_fun_toCoinsString(__tact_my_balance()));
+}
+
+((slice, int), int) $TonContract$_fun_id((slice, int) $self) impure inline_ref {
+    var (($self'owner, $self'id)) = $self;
+    return (($self'owner, $self'id), $self'id);
+}
+
+;;
+;; Receivers of a Contract TonContract
+;;
+
+(((slice, int)), ()) %$TonContract$_internal_empty((slice, int) $self) impure inline {
+    var ($self'owner, $self'id) = $self;
+    return (($self'owner, $self'id), ());
+}
+
+(((slice, int)), ()) $TonContract$_internal_binary_Withdraw((slice, int) $self, (int) $msg) impure inline {
+    var ($self'owner, $self'id) = $self;
+    var ($msg'amount) = $msg;
+    ($self'owner, $self'id)~$TonContract$_fun_isOwner();
+    int $amount = ((__tact_my_balance() - $Context$_get_value(__tact_context_get())) - 100000000);
+    throw_unless(19578, ($msg'amount > 0));
+    $global_send($SendParameters$_constructor_to_value_mode_bounce($self'owner, $amount, 66, true));
+    return (($self'owner, $self'id), ());
+}
+
+(((slice, int)), ()) $TonContract$_internal_binary_Deploy((slice, int) $self, (int) $deploy) impure inline {
+    var ($self'owner, $self'id) = $self;
+    var ($deploy'queryId) = $deploy;
+    ($self'owner, $self'id)~$TonContract$_fun_notify($DeployOk$_store_cell($DeployOk$_constructor_queryId($deploy'queryId)));
+    return (($self'owner, $self'id), ());
+}
+
+;;
+;; Get methods of a Contract TonContract
+;;
+
+_ %balance() method_id(104128) {
+    var self = $TonContract$_contract_load();
+    var res = self~$TonContract$_fun_balance();
+    return res;
+}
+
+_ %id() method_id(105872) {
+    var self = $TonContract$_contract_load();
+    var res = self~$TonContract$_fun_id();
+    return res;
+}
+
+_ lazy_deployment_completed() method_id {
+    return get_data().begin_parse().load_int(1);
+}
+
+;;
+;; Routing of a Contract TonContract
+;;
+
+((slice, int), int) $TonContract$_contract_router_internal((slice, int) self, int msg_bounced, slice in_msg) impure inline_ref {
+    ;; Handle bounced messages
+    if (msg_bounced) {
+        return (self, true);
+    }
+    
+    ;; Parse incoming message
+    int op = 0;
+    if (slice_bits(in_msg) >= 32) {
+        op = in_msg.preload_uint(32);
+    }
+    
+    
+    ;; Receive empty message
+    if ((op == 0) & (slice_bits(in_msg) <= 32)) {
+        self~%$TonContract$_internal_empty();
+        return (self, true);
+    }
+    
+    ;; Receive Withdraw message
+    if (op == 195467089) {
+        var msg = in_msg~$Withdraw$_load();
+        self~$TonContract$_internal_binary_Withdraw(msg);
+        return (self, true);
+    }
+    
+    ;; Receive Deploy message
+    if (op == 2490013878) {
+        var msg = in_msg~$Deploy$_load();
+        self~$TonContract$_internal_binary_Deploy(msg);
+        return (self, true);
+    }
+    
+    return (self, false);
+}
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+    
+    ;; Context
+    var cs = in_msg_cell.begin_parse();
+    var msg_flags = cs~load_uint(4);
+    var msg_bounced = -(msg_flags & 1);
+    slice msg_sender_addr = __tact_verify_address(cs~load_msg_addr());
+    __tact_context = (msg_bounced, msg_sender_addr, msg_value, cs);
+    __tact_context_sender = msg_sender_addr;
+    
+    ;; Load contract data
+    var self = $TonContract$_contract_load();
+    
+    ;; Handle operation
+    int handled = self~$TonContract$_contract_router_internal(msg_bounced, in_msg);
+    
+    ;; Throw if not handled
+    throw_unless(130, handled);
+    
+    ;; Persist state
+    $TonContract$_contract_store(self);
+}

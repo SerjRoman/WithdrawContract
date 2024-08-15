@@ -5,16 +5,22 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "webpack --config ./config/dev.config.ts",
-		"start": "webpack server --config ./config/dev.config.ts"
+		"start": "webpack server --config ./config/dev.config.ts",
+		"plop": "plop"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
+		"@babel/plugin-transform-modules-commonjs": "^7.24.8",
 		"@babel/preset-env": "^7.25.3",
 		"@babel/preset-react": "^7.24.7",
 		"@babel/register": "^7.24.6",
+		"@orbs-network/ton-access": "^2.3.3",
+		"@ton/blueprint": "^0.22.0",
+		"@ton/core": "^0.56.3",
+		"@ton/ton": "^14.0.0",
 		"@tonconnect/ui": "^2.0.6",
 		"@tonconnect/ui-react": "^2.0.6",
 		"@types/node": "^22.1.0",
@@ -23,14 +29,33 @@
 		"@types/webpack": "^5.28.5",
 		"babel-loader": "^9.1.3",
 		"babel-preset": "^1.1.7",
+		"Buffer": "^0.0.0",
+		"casbin.js": "^1.0.1",
+		"crypto-browserify": "^3.12.0",
 		"css-loader": "^7.1.2",
+		"dotenv-webpack": "^8.1.0",
 		"html-webpack-plugin": "^5.6.0",
+		"install": "^0.13.0",
 		"mini-css-extract-plugin": "^2.9.0",
+		"node-polyfill-webpack-plugin": "^4.0.0",
+		"npm": "^10.8.2",
+		"path-browserify": "^1.0.1",
+		"plop": "^4.0.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
+		"stream-browserify": "^3.0.0",
+		"ton": "^13.9.0",
 		"typescript": "^5.5.4",
 		"webpack": "^5.93.0",
 		"webpack-cli": "^5.1.4",
-		"webpack-dev-server": "^5.0.4"
+		"webpack-dev-server": "^5.0.4",
+		"webpack-node-externals": "^3.0.0"
+	},
+	"devDependencies": {
+		"buffer": "^6.0.3",
+		"https-browserify": "^1.0.0",
+		"process": "^0.11.10",
+		"stream-http": "^3.2.0",
+		"url": "^0.11.4"
 	}
 }
